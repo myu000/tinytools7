@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tiny Tools</title>
+<meta name="color-scheme" content="dark light">
+<style>
+/* Paste CSS section here */
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Tiny Tools</h1>
+  <div class="actions">
+    <button class="btn ghost" onclick="toggleTheme()" aria-label="Toggle theme">Theme</button>
+    <button class="btn" onclick="focusTile('writing')" aria-label="Focus writing">Focus Writing</button>
+    <button class="btn secondary" onclick="clearData()" aria-label="Clear local data">Clear data</button>
+  </div>
+</header>
+
+<main id="grid">
+  <!-- Writing -->
+  <section id="writing" class="tile" aria-label="Writing editor">
+    <div class="tile-header">
+      <h3 class="tile-title">Writing</h3>
+      <div class="row">
+        <button class="btn ghost" onclick="exportAllWriting()" aria-label="Export all writing">Export all</button>
+        <button class="btn icon" onclick="toggleFull('writing')" title="Expand">⤢</button>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Writing modes">
+      <button class="tab active" data-tab="prompts" onclick="setWritingTab('prompts', this)" role="tab" aria-selected="true">Prompts</button>
+      <button class="tab" data-tab="free" onclick="setWritingTab('free', this)" role="tab" aria-selected="false">Free</button>
+      <button class="tab" data-tab="brainstorm" onclick="setWritingTab('brainstorm', this)" role="tab" aria-selected="false">Brainstorm</button>
+      <button class="tab" data-tab="journal" onclick="setWritingTab('journal', this)" role="tab" aria-selected="false">Journal</button>
+    </div>
+
+    <!-- Prompts -->
+    <div id="promptsView" class="stack" role="tabpanel" aria-label="Prompts view">
+      <div class="toolbar">
+        <label class="muted" for="genreSelect">Genre</label>
+        <select id="genreSelect" aria-label="Select genre">
+          <option value="fantasy">Fantasy</option>
+          <option value="mystery">Mystery</option>
+          <option value="romance">Romance</option>
+          <option value="sci-fi">Sci‑Fi</option>
+          <option value="drama">Drama</option>
+          <option value="reflective">Reflective</option>
+          <option value="random">Random</option>
+        </select>
+        <button class="btn" onclick="newPrompt()" aria-label="Generate new prompt">New prompt</button>
+        <button class="btn secondary" onclick="openResponses()" aria-label="Open saved responses">Responses</button>
+      </div>
+      <div id="promptArea" class="stack">
+        <p class="muted">Click “New prompt” to start. Your response will autosave.</p>
+      </div>
+    </div>
+
+    <!-- Free -->
+    <div id="freeView" class="stack" role="tabpanel" aria-label="Free writing" style="display:none;">
+      <div class="toolbar">
+        <button class="btn" onclick="saveFree()">Save</button>
+        <button class="btn secondary" onclick="discardFree()">Discard</button>
+        <button class="btn ghost" onclick="exportText('free_draft.txt', document.getElementById('freeText').value)">Export</button>
+      </div>
+      <textarea id="freeText" placeholder="Write freely..." aria-label="Free writing textarea"></textarea>
+    </div>
+
+    <!-- Brainstorm -->
+    <div id="brainstormView" class="stack" role="tabpanel" aria-label="Brainstorm view" style="display:none;">
+      <div class="toolbar">
+        <button class="btn" onclick="generateIdea()">Generate idea</button>
+        <button class="btn secondary" onclick="clearIdeas()">Clear</button>
+        <button class="btn" onclick="saveBrainstorm()">Save notes</button>
+        <button class="btn ghost" onclick="exportBrainstorm()">Export</button>
+      </div>
+      <p id="ideaText" class="muted" aria-live="polite"></p>
+      <textarea id="brainstormDraft" placeholder="Capture sparks, sketch directions..." aria-label="Brainstorm notes"></textarea>
+    </div>
+
+    <!-- Journal -->
+    <div id="journalView" class="stack" role="tabpanel" aria-label="Journal view" style="display:none;">
+      <div class="toolbar">
+        <button class="btn" onclick="saveJournal()">Save entry</button>
+        <button class="btn ghost" onclick="exportJournal()">Export all</button>
+        <button class="btn secondary" onclick="exportJournalPrintable()">Printable</button>
+      </div>
+      <textarea id="journalText" placeholder="Today’s entry..." aria-label="Journal entry"></textarea>
+      <div id="journalEntries" class="stack" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- To‑Do -->
+  <section id="todo" class="tile" aria-label="To‑Do list">
+    <div class="tile-header">
+      <h3 class="tile-title">To‑Do</h3>
+      <div class="row">
+        <button class="btn icon" onclick="toggleFull('todo')" title="Expand">⤢</button>
+      </div>
+    </div>
+    <div class="row">
+      <input id="todoInput" placeholder="Add task" aria-label="Task input" />
+      <button class="btn" onclick="addTask()">Add</button>
+    </div>
+    <div id="todoList" class="stack"></div>
+  </section>
+
+  <!-- Music (user‑curated) -->
+  <section id="music" class="tile" aria-label="Music playlists">
+    <div class="tile-header">
+      <h3 class="tile-title">Music</h3>
+      <div class="row">
+        <button class="btn icon" onclick="toggleFull('music')" title="Expand">⤢</button>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="toolbar">
+        <input id="musicName" placeholder="Playlist name" />
+        <input id="musicUrl" placeholder="Audio URL (mp3/stream)" />
+        <button class="btn" onclick="addPlaylist()">Save</button>
+      </div>
+      <audio id="player" controls preload="none" style="width:100%"></audio>
+      <div id="playlistList" class="stack"></div>
+    </div>
+  </section>
+
+  <!-- Wallpapers (ambient visual) -->
+  <section id="wallpapers" class="tile" aria-label="Wallpapers">
+    <div class="tile-header">
+      <h3 class="tile-title">Wallpapers</h3>
+      <div class="row">
+        <button class="btn icon" onclick="toggleFull('wallpapers')" title="Expand">⤢</button>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="toolbar">
+        <select id="envSelect" aria-label="Environment">
+          <option value="default">Default</option>
+          <option value="forest">Forest</option>
+          <option value="ocean">Ocean</option>
+          <option value="dusk">Dusk</option>
+          <option value="mono">Mono</option>
+        </select>
+        <button class="btn" onclick="applyEnvironment()">Apply</button>
+        <button class="btn secondary" onclick="resetEnvironment()">Reset</button>
+      </div>
+      <div class="toolbar">
+        <input id="wallUrl" placeholder="Wallpaper image URL" />
+        <button class="btn" onclick="setWallpaper()">Set wallpaper</button>
+        <button class="btn ghost" onclick="clearWallpaper()">Clear</button>
+      </div>
+      <p class="muted">Tip: use soft, muted images for calm writing.</p>
+    </div>
+  </section>
+
+  <!-- Clock & timer -->
+  <section id="clock" class="tile" aria-label="Clock and timer">
+    <div class="tile-header">
+      <h3 class="tile-title">Clock</h3>
+      <div class="row">
+        <button class="btn icon" onclick="toggleFull('clock')" title="Expand">⤢</button>
+      </div>
+    </div>
+    <div class="stack">
+      <p id="clockText" class="muted">—</p>
+      <div class="toolbar">
+        <input id="timerMins" type="number" min="1" max="180" value="25" style="width:90px" />
+        <button class="btn" onclick="startTimer()">Start</button>
+        <button class="btn secondary" onclick="stopTimer()">Stop</button>
+        <span id="timerStatus" class="muted" aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Notes -->
+  <section id="notes" class="tile" aria-label="Notes">
+    <div class="tile-header">
+      <h3 class="tile-title">Notes</h3>
+      <div class="row">
+        <button class="btn icon" onclick="toggleFull('notes')" title="Expand">⤢</button>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="row">
+        <input id="noteTitle" placeholder="Title" />
+        <button class="btn" onclick="addNote()">Save</button>
+      </div>
+      <textarea id="noteBody" placeholder="Quick notes..."></textarea>
+      <div id="notesList" class="stack"></div>
+    </div>
+  </section>
+</main>
+
+<!-- Responses modal -->
+<div id="responsesModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-label="Saved responses">
+  <div class="sheet">
+    <div class="tile-header">
+      <h3>Saved responses</h3>
+      <div class="row">
+        <button class="btn ghost" onclick="closeResponses()">Close</button>
+      </div>
+    </div>
+    <div id="responsesList" class="stack"></div>
+    <div class="toolbar" style="margin-top:8px;">
+      <button class="btn" onclick="exportSelectedResponses()">Export selected</button>
+      <button class="btn secondary" onclick="selectAllResponses(true)">Select all</button>
+      <button class="btn secondary" onclick="selectAllResponses(false)">Clear selection</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* Paste JS section here */
+</script>
+</body>
+</html>
